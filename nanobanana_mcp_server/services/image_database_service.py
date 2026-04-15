@@ -47,8 +47,13 @@ class ImageDatabaseService:
         self.db_path = db_path or os.path.join("output", "images.db")
         self.logger = logging.getLogger(__name__)
 
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(self.db_path), exist_ok=True)
+        # Ensure directory exists with restrictive permissions
+        db_dir = os.path.dirname(self.db_path)
+        os.makedirs(db_dir, exist_ok=True)
+        try:
+            os.chmod(db_dir, 0o700)
+        except OSError:
+            pass  # Non-POSIX systems (Windows) may not support chmod
 
         # Initialize database
         self._init_db()
@@ -82,7 +87,14 @@ class ImageDatabaseService:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_path ON images(path)")
 
             conn.commit()
-            self.logger.info(f"Database initialized at {self.db_path}")
+
+        # Restrict database file to owner-only access
+        try:
+            os.chmod(self.db_path, 0o600)
+        except OSError:
+            pass  # Non-POSIX systems (Windows) may not support chmod
+
+        self.logger.info(f"Database initialized at {self.db_path}")
 
     def upsert_image(
         self,

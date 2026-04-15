@@ -93,16 +93,22 @@ def validate_file_path(path: str) -> None:
     if not path or not path.strip():
         raise ValidationError("File path cannot be empty")
 
-    # Basic path traversal protection
-    if ".." in path or path.startswith("/"):
-        raise ValidationError("Invalid file path: potential security risk")
+    from pathlib import Path
 
-    import os
+    try:
+        resolved = Path(path).resolve()
+    except (OSError, ValueError) as e:
+        raise ValidationError(f"Invalid file path: {e}")
 
-    if not os.path.exists(path):
+    # Detect path traversal attempts: if the resolved path escaped by going
+    # above the root through ".." components the original string contains them.
+    if ".." in Path(path).parts:
+        raise ValidationError("Invalid file path: path traversal detected")
+
+    if not resolved.exists():
         raise ValidationError(f"File not found: {path}")
 
-    if not os.path.isfile(path):
+    if not resolved.is_file():
         raise ValidationError(f"Path is not a file: {path}")
 
 

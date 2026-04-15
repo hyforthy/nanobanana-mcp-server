@@ -72,3 +72,5 @@ blog/
 specs/
 
 .playwright-mcp/
+
+.claude

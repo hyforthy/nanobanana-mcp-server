@@ -220,11 +220,21 @@ def register_generate_image_tool(server: FastMCP):
                 if len(input_image_paths) > MAX_INPUT_IMAGES:
                     raise ValidationError(f"Maximum {MAX_INPUT_IMAGES} input images allowed")
 
-                # Validate that all files exist
+                # Validate that all files exist and are safe paths
+                from pathlib import Path as _Path
+
                 for i, path in enumerate(input_image_paths):
-                    if not os.path.exists(path):
+                    if ".." in _Path(path).parts:
+                        raise ValidationError(
+                            f"Input image {i + 1}: path traversal detected"
+                        )
+                    try:
+                        resolved = _Path(path).resolve()
+                    except (OSError, ValueError) as e:
+                        raise ValidationError(f"Input image {i + 1}: invalid path: {e}")
+                    if not resolved.exists():
                         raise ValidationError(f"Input image {i + 1} not found: {path}")
-                    if not os.path.isfile(path):
+                    if not resolved.is_file():
                         raise ValidationError(f"Input image {i + 1} is not a file: {path}")
 
             # Mode-specific validation

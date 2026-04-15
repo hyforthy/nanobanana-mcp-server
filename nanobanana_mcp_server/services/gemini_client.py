@@ -112,6 +112,13 @@ class GeminiClient:
                     self.logger.warning(f"Skipping empty image data at index {i}")
                     continue
 
+                max_size = self.gemini_config.max_inline_image_size
+                if len(raw_data) > max_size:
+                    raise ValueError(
+                        f"Image at index {i} is too large "
+                        f"({len(raw_data):,} bytes > {max_size:,} bytes limit)"
+                    )
+
                 part = gx.Part.from_bytes(data=raw_data, mime_type=mime_type)
                 parts.append(part)
             except Exception as e:

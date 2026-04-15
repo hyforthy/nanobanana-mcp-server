@@ -50,7 +50,7 @@ class ServerConfig:
     transport: str = "stdio"  # stdio or http
     host: str = "127.0.0.1"
     port: int = 9000
-    mask_error_details: bool = False
+    mask_error_details: bool = True
     max_concurrent_requests: int = 10
     image_output_dir: str = ""
     return_full_image: bool = False
@@ -115,7 +115,7 @@ class ServerConfig:
             transport=os.getenv("FASTMCP_TRANSPORT", "stdio"),
             host=os.getenv("FASTMCP_HOST", "127.0.0.1"),
             port=int(os.getenv("FASTMCP_PORT", "9000")),
-            mask_error_details=os.getenv("FASTMCP_MASK_ERRORS", "false").lower() == "true",
+            mask_error_details=os.getenv("FASTMCP_MASK_ERRORS", "true").lower() != "false",
             image_output_dir=str(output_path),
             return_full_image=os.getenv("RETURN_FULL_IMAGE", "false").strip().lower()
             in ("true", "1", "yes"),
